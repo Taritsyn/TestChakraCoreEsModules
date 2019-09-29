@@ -20,12 +20,38 @@ namespace TestChakraCoreEsModules
 
 				try
 				{
+					JsValue moduleNamespace;
+
+					// It's not working. Always returns a result equal to `undefined`.
 					JsValue resultValue = moduleManager.EvaluateModuleCode(
 						@"import * as geometry from './geometry/geometry.js';
 new geometry.Square(15).area;",
-						"Files/main.js"
+						"Files/main-with-return-value.js",
+						out moduleNamespace
 					);
-					WriteLine("Result of evaluation: {0}", resultValue.ConvertToString().ToString());
+					WriteLine("Return value: {0}", resultValue.ConvertToString().ToString());
+
+					// It's works. We can return the result value by using the default export.
+					moduleManager.EvaluateModuleCode(
+						@"import * as geometry from './geometry/geometry.js';
+export default new geometry.Square(20).area;",
+						"Files/main-with-default-export.js",
+						out moduleNamespace
+					);
+					JsPropertyId defaultPropertyId = JsPropertyId.FromString("default");
+					JsValue defaultPropertyValue = moduleNamespace.GetProperty(defaultPropertyId);
+					WriteLine("Default export: {0}", defaultPropertyValue.ConvertToString().ToString());
+
+					// It's works. We can return the result value by using the named export.
+					moduleManager.EvaluateModuleCode(
+						@"import * as geometry from './geometry/geometry.js';
+export let squareArea = new geometry.Square(25).area;",
+						"Files/main-with-named-export.js",
+						out moduleNamespace
+					);
+					JsPropertyId squareAreaPropertyId = JsPropertyId.FromString("squareArea");
+					JsValue squareAreaPropertyValue = moduleNamespace.GetProperty(squareAreaPropertyId);
+					WriteLine("Named export: {0}", squareAreaPropertyValue.ConvertToString().ToString());
 				}
 				catch (JsException e)
 				{

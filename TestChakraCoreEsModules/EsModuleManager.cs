@@ -123,9 +123,10 @@ namespace TestChakraCoreEsModules
 			return JsErrorCode.NoError;
 		}
 
-		private JsValue EvaluateModulesTree()
+		private JsValue EvaluateModulesTree(out JsValue moduleNamespace)
 		{
 			JsValue result = JsValue.Invalid;
+			moduleNamespace = JsValue.Invalid;
 
 			while (_moduleJobQueue.Count > 0)
 			{
@@ -135,6 +136,10 @@ namespace TestChakraCoreEsModules
 				if (job.IsParsed)
 				{
 					result = module.Evaluate();
+					if (result.IsValid)
+					{
+						moduleNamespace = module.Namespace;
+					}
 				}
 				else
 				{
@@ -183,8 +188,9 @@ namespace TestChakraCoreEsModules
 		/// </summary>
 		/// <param name="code">Module code</param>
 		/// <param name="path">Path to the module</param>
+		/// <param name="moduleNamespace">The namespace object for a module (i.e. its export table)</param>
 		/// <returns>Result of the module evaluation</returns>
-		public JsValue EvaluateModuleCode(string code, string path)
+		public JsValue EvaluateModuleCode(string code, string path, out JsValue moduleNamespace)
 		{
 			if (code == null)
 			{
@@ -218,15 +224,16 @@ namespace TestChakraCoreEsModules
 				);
 			}
 
-			return EvaluateModuleInternal(code, path);
+			return EvaluateModuleInternal(code, path, out moduleNamespace);
 		}
 
 		/// <summary>
 		/// Evaluates an module file
 		/// </summary>
 		/// <param name="path">Path to the module file</param>
+		/// <param name="moduleNamespace">The namespace object for a module (i.e. its export table)</param>
 		/// <returns>Result of the module evaluation</returns>
-		public JsValue EvaluateModuleFile(string path)
+		public JsValue EvaluateModuleFile(string path, out JsValue moduleNamespace)
 		{
 			if (path == null)
 			{
@@ -252,10 +259,10 @@ namespace TestChakraCoreEsModules
 				);
 			}
 
-			return EvaluateModuleInternal(string.Empty, path);
+			return EvaluateModuleInternal(string.Empty, path, out moduleNamespace);
 		}
 
-		private JsValue EvaluateModuleInternal(string code, string path)
+		private JsValue EvaluateModuleInternal(string code, string path, out JsValue moduleNamespace)
 		{
 			JsModuleRecord invalidModule = JsModuleRecord.Invalid;
 			string modulePath = path;
@@ -280,7 +287,7 @@ namespace TestChakraCoreEsModules
 
 				try
 				{
-					result = EvaluateModulesTree();
+					result = EvaluateModulesTree(out moduleNamespace);
 					JsValue exception = module.Exception;
 
 					if (exception.IsValid)

@@ -100,6 +100,20 @@ namespace TestChakraCoreEsModules.JsRt
 		}
 
 		/// <summary>
+		/// Gets a namespace object
+		/// </summary>
+		public JsValue Namespace
+		{
+			get
+			{
+				JsValue moduleNamespace;
+				JsErrorHelpers.ThrowIfError(NativeMethods.JsGetModuleNamespace(this, out moduleNamespace));
+
+				return moduleNamespace;
+			}
+		}
+
+		/// <summary>
 		/// Gets a value indicating whether the module record is valid
 		/// </summary>
 		public bool IsValid
